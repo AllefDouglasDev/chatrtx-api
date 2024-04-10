@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Streamed Response</title>
+  </head>
+  <body>
+    <input type="text" id="messageInput" placeholder="Enter message" />
+    <button onclick="sendMessage()">Submit</button>
+    <pre id="responseContainer"></pre>
+
+    <script>
+      // Function to handle the stream response
+      async function handleStreamResponse(response) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+
+          if (done) {
+            break;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+          const chunks = buffer.split("data:");
+
+          for (let i = 1; i < chunks.length; i++) {
+            const dataChunk = chunks[i];
+            const startIndex = dataChunk.indexOf("{");
+            const endIndex = dataChunk.lastIndexOf("}") + 1;
+            const jsonData = dataChunk.slice(startIndex, endIndex);
+            const parsedData = JSON.parse(jsonData);
+
+            if (parsedData?.output?.data) {
+              const outputData = parsedData.output.data[0][0][1];
+              document.getElementById("responseContainer").innerText +=
+                outputData + "\n";
+            }
+          }
+
+          buffer = chunks[chunks.length - 1];
+        }
+      }
+
+      // Function to make a request to the server and handle the response
+      async function sendMessage() {
+        try {
+          const message = document.getElementById("messageInput").value;
+          const response = await fetch(
+            `http://localhost:3000/?message=${encodeURIComponent(message)}`
+          );
+
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          await handleStreamResponse(response);
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+    </script>
+  </body>
+</html>
