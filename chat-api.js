@@ -8,14 +8,14 @@ const crypto = require("crypto");
  Usage:
     const port = 5000;
     const queueManager = new chatApi(port);
-    queueManager
-        .sendMessage(message)
-        .then((response) => {
-            console.log("Respuesta del servidor:", response);
-        })
-        .catch((error) => {
-            console.error("Error:", error);
-        });
+    const responseStream = await queueManager.sendMessage(message);
+
+    // Set response headers
+    res.setHeader('Content-Type', 'text/plain');
+    res.setHeader('Transfer-Encoding', 'chunked');
+
+    // Pipe the response stream to the client response
+    responseStream.pipe(res);
 */
 
 class chatApi {
