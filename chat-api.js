@@ -56,25 +56,7 @@ class chatApi {
     const url = `${this.baseUrl}/queue/data?session_hash=${sessionHash}`;
     try {
       const response = await axios.get(url, { responseType: "stream" });
-      console.log(response.data)
       return response.data
-      const lines = response.data.split("\n");
-      for (const line of lines) {
-        if (line) {
-          try {
-            const data = JSON.parse(line.slice(5));
-
-            console.log(data?.output?.data);
-            if (data.msg === "process_completed") {
-              return data.output.data[0][0][1];
-            }
-          } catch (e) {
-            console.log("Parsing errors", e);
-            // Ignore parsing errors
-          }
-        }
-      }
-      return "";
     } catch (error) {
       throw error;
     }
@@ -82,19 +64,6 @@ class chatApi {
 
   async sendMessage(message) {
     const sessionHash = this.generateSessionHash();
-
-    // await this.joinQueue(sessionHash, 30, []);
-    // await this.listenForUpdates(sessionHash);
-
-    // await this.joinQueue(sessionHash, 31, []);
-    // await this.listenForUpdates(sessionHash);
-
-    // await this.joinQueue(sessionHash, 32, ["", [], "AI model default", null]);
-    // await this.listenForUpdates(sessionHash);
-
-    // await this.joinQueue(sessionHash, 33, ["", []]);
-    // await this.listenForUpdates(sessionHash);
-
     await this.joinQueue(sessionHash, 34, [[[message, null]], null]);
     return this.listenForUpdates(sessionHash);
   }
