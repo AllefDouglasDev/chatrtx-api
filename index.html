@@ -11,6 +11,10 @@
     <pre id="responseContainer"></pre>
 
     <script>
+      let rendered = "";
+      function remaining(text) {
+        return text.substr(rendered.length, text.length + 1);
+      }
       // Function to handle the stream response
       async function handleStreamResponse(response) {
         const reader = response.body.getReader();
@@ -36,8 +40,9 @@
 
             if (parsedData?.output?.data) {
               const outputData = parsedData.output.data[0][0][1];
-              document.getElementById("responseContainer").innerText +=
-                outputData + "\n";
+              const remainingText = remaining(outputData);
+              rendered += remainingText;
+              document.getElementById("responseContainer").innerText = rendered;
             }
           }
 
@@ -47,6 +52,7 @@
 
       // Function to make a request to the server and handle the response
       async function sendMessage() {
+          rendered = "";
         try {
           const message = document.getElementById("messageInput").value;
           const response = await fetch(
